@@ -1,0 +1,204 @@
+package com.taobao.hsf.jetty;
+
+import org.eclipse.jetty.util.URIUtil;
+import org.eclipse.jetty.util.resource.FileResource;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppClassLoader;
+import org.eclipse.jetty.webapp.WebAppContext;
+
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+
+/**
+ * 重写appcontext的getresource方法 ，目的替换ServletContext.getResource().
+ * @author xuanxiao
+ *
+ */
+public class HSFJettyWebAppContext extends JettyWebAppContext {
+
+    private static  String  visualPath = null;
+    private static String autoconfigPath = null;
+//    PlaceHolderReplace placeHolder = new PlaceHolderReplace();
+    static {
+        String dir = System.getProperty("java.io.tmpdir");
+        //该文件 前期已经新建
+        File f = new File(dir,"hsf_jetty_placeholder");
+        visualPath = f.getAbsolutePath();
+        f = new File(dir,"hsf_jetty");
+        autoconfigPath = f.getAbsolutePath();
+
+    }
+
+    private WebAppClassLoader appClassLoader = null;
+
+    public HSFJettyWebAppContext() {
+        super();
+    }
+
+    @Override
+    public Resource getResource(String uriInContext)
+            throws MalformedURLException {
+        if(appClassLoader != null && !"/".equals(uriInContext)){
+            URL url = appClassLoader.getResource(uriInContext);
+            if(url != null && "file".equals(url.getProtocol())){
+                try {
+                    String file = url.toURI().getPath();
+                    File f = new File(file);
+                    if(f.exists()){
+                        try {
+                            System.out.println("HSFJettyWebAppContext replace servlet context get file "+ file);
+                            return new FileResource(url);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+
+        //TODO 重构
+        Resource resource =  super.getResource(uriInContext);
+        /*if(resource != null && "file".equalsIgnoreCase(resource.getURL().getProtocol()) && uriInContext.endsWith(".xml") && !uriInContext.endsWith("web.xml")){
+            try {
+                File f = resource.getFile();
+                if(f != null && f.exists()){
+                    String charset = GuessStreamEncoding.getFileEncoding(f);
+                    String xmlString = getFile2String(resource.getURL(),charset);
+                    Set<String> set = new HashSet<String>();
+                    if(placeHolder.hasPlaceHolder(xmlString)){
+                        String finalString = placeHolder.parseStringValue(xmlString, System.getProperties(), set);
+                        return new FileResource(saveFile(finalString,uriInContext,charset));
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return resource;
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+                return resource;
+            }
+        }*/
+        return resource;
+    }
+    public WebAppClassLoader getAppClassLoader() {
+        return appClassLoader;
+    }
+    public void setAppClassLoader(WebAppClassLoader appClassLoader) {
+        this.appClassLoader = appClassLoader;
+    }
+
+    private URL saveFile(String finalString,String name,String charset) {
+
+        File f = new File(visualPath+File.separator+name);
+        System.out.println("Web Context替换文件到["+f.getAbsolutePath()+"]");
+        PrintWriter pw = null;
+        try {
+            if(!f.exists()){
+                File parent = f.getParentFile();
+                if(!parent.exists()){
+                    parent.mkdirs();
+                }
+                f.createNewFile();
+            }
+            if (charset == null) {
+                pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
+                        new FileOutputStream(f))), false);
+            } else {
+                pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
+                        new FileOutputStream(f), charset)), false);
+            }
+            pw.print(finalString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            if(pw != null){
+                pw.close();
+            }
+        }
+        try {
+            return f.toURI().toURL();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String getFile2String(URL orignalPath,String charset){
+        BufferedReader br = null;
+        try {
+            InputStream stream = orignalPath.openStream();
+            if(charset == null){
+                br = new BufferedReader(new InputStreamReader(stream));
+            }else{
+                br = new BufferedReader(new InputStreamReader(stream,charset));
+            }
+
+            String line = null;
+            StringBuilder sb  = new StringBuilder();
+            while((line= br.readLine()) != null){
+                sb.append(line+"\r\n");
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            if(br != null){
+                try {
+                    br.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+
+        return null;
+    }
+    @SuppressWarnings("unchecked")
+    @Override
+    public Set getResourcePaths(String path) {
+        HashSet set = new HashSet();
+        try
+        {
+            path=URIUtil.canonicalPath(path);
+            Resource resource=super.getResource(path);
+            if (resource!=null && resource.exists())
+            {
+                if (!path.endsWith(URIUtil.SLASH))
+                    path=path+URIUtil.SLASH;
+
+                String[] l=resource.list();
+                if (l!=null)
+                {
+                    for(int i=0;i<l.length;i++)
+                        set.add(path+l[i]);
+                }
+            }
+            //handl auto config
+            File autoPath = new File(autoconfigPath,path);
+            if(autoPath.exists() && autoPath.isDirectory()){
+                String[] files = autoPath.list();
+                for(String file : files){
+                    set.add(path+file);
+                }
+            }
+        }
+        catch(Exception e)
+        {
+        }
+        if(set.isEmpty()){
+            return Collections.EMPTY_SET;
+        }
+        return set;
+    }
+
+}
