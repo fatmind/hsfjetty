@@ -161,7 +161,7 @@
             <dependency>
                 <groupId>com.alibaba.citrus.tool</groupId>
                 <artifactId>antx-autoconfig</artifactId>
-                <version>1.1</version>
+                <version>1.2</version>
             </dependency>
             <dependency>
                 <groupId>com.taobao.hsf</groupId>
@@ -257,8 +257,15 @@
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
-                <!-- <executions> <execution> <id>mojo-descriptor</id> <phase>process-classes</phase> <goals> <goal>descriptor</goal> 
-                    </goals> </execution> </executions> -->
+                <executions>
+                    <execution>
+                        <id>mojo-descriptor</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>descriptor</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 <!--            <plugin>
                 <groupId>${project.groupId}</groupId>

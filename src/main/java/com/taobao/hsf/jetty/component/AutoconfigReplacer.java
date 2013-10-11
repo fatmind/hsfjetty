@@ -118,6 +118,7 @@ public class AutoconfigReplacer implements PlaceholderReplacer {
         LogConfigurator.getConfigurator().configureDefault(false, logCharset);
 
         ConfigRuntimeImpl antxRuntime = new ConfigRuntimeImpl(System.in, System.out, System.err, logCharset);
+//        ConfigRuntimeImpl antxRuntime = new WebInfClassesConfigRuntimeImpl(System.in, System.out, System.err, logCharset);
 
         //ori dependecy jars
         File[] oriJars = getRuntimeJars().toArray(new File[0]);

@@ -724,6 +724,9 @@ public abstract class AbstractJettyMojo extends AbstractMojo
     public File getHsfDirectory() {
         if (hsfDirectory == null||!hsfDirectory.exists()){
             String hsfPath = System.getenv("HSF_HOME");
+            if(hsfPath == null){
+                hsfPath = System.getenv("hsf_home");
+            }
             if (hsfPath != null&& hsfPath.length() >0){
                 File hsfDir = new File(hsfPath);
                 if(hsfDir.exists() && hsfDir.isDirectory()){
@@ -738,12 +741,14 @@ public abstract class AbstractJettyMojo extends AbstractMojo
     private AutoconfigReplacer replacer;
     /**
      * The default location of the web.xml file. Will be used
-     * if <webAppConfig><descriptor> is not set.
-     *
+     * if &lt;webAppConfig&gt;&lt;descriptor&gt; is not set.
+     * <p/>
+     * parameter expression="${basedir}/src/main/webapp/WEB-INF/web.xml" <br />
      * parameter expression="${maven.war.webxml}"
      * readonly
      */
-    @Parameter(defaultValue="${maven.war.webxml}",readonly=true)
+//    @Parameter(defaultValue="${maven.war.webxml}",readonly=true)
+    @Parameter(defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml",readonly=true)
     private String webXml;
 
 

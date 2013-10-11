@@ -95,16 +95,6 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
 
 
     /**
-     * The default location of the web.xml file. Will be used
-     * if &lt;webAppConfig&gt;&lt;descriptor&gt; is not set.
-     * <p/>
-     * parameter expression="${basedir}/src/main/webapp/WEB-INF/web.xml"
-     * readonly
-     */
-    @Parameter(defaultValue = "${basedir}/src/main/webapp/WEB-INF/web.xml")
-    private String webXml;
-
-    /**
      * Directories that contain static resources
      * for the webapp. Optional.
      * <p/>
@@ -112,8 +102,6 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
      */
     @Parameter
     private File[] resourceBases;
-
-
     /**
      * If true, the webAppSourceDirectory will be first on the list of
      * resources that form the resource base for the webapp. If false,
@@ -271,7 +259,7 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
             if (webXML != null && webXML.exists() && !webXML.isDirectory()) {
                 props.put("web.xml", webXML.getAbsolutePath());
             } else {
-                props.put("web.xml", webXml);
+                props.put("web.xml", getWebXml());
             }
 
             if (webPort > 0) {
