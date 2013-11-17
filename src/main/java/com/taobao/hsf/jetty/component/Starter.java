@@ -117,14 +117,14 @@ public class Starter
 
 
 
-        System.err.println("STOP PORT="+stopPort+", STOP KEY="+stopKey);
+        /*System.err.println("STOP PORT="+stopPort+", STOP KEY="+stopKey);
         if(stopPort>0 && stopKey!=null)
         {
-//            ShutdownMonitor monitor = ShutdownMonitor.getInstance();
-//            monitor.setPort(stopPort);
-//            monitor.setKey(stopKey);
-//            monitor.setExitVm(true);
-        }
+            ShutdownMonitor monitor = ShutdownMonitor.getInstance();
+            monitor.setPort(stopPort);
+            monitor.setKey(stopKey);
+            monitor.setExitVm(true);
+        }*/
     }
     
     

@@ -28,7 +28,8 @@ public class AutoconfigReplacer implements PlaceholderReplacer {
     private static File webAppSourceDirectory;
     private static Log logger;
     private static File buildDirectory;//${project.build.directory}
-    private static File baseDirectory;//${basedir}
+    private static File baseDirectory;//${/home/workspace/ticketserver/war}
+    private static File parentBaseDirectory;//${/home/workspace/ticketserver}
     private static File autoconfigTempDirectory;//defaultValue = "${project.build.directory}/hsf_jetty_temp/antx_autoconfig"
     private static Resource antxPropertiesFile;
     private static Set<String> excludeFiles = new HashSet<String>();//exclude files of autoconfig template
@@ -57,7 +58,8 @@ public class AutoconfigReplacer implements PlaceholderReplacer {
             AutoconfigReplacer.logger = logger;
             AutoconfigReplacer.buildDirectory = new File(project.getBuild().getOutputDirectory());
             mkdirs(buildDirectory);
-            AutoconfigReplacer.baseDirectory = new File(project.getBuild().getDirectory());
+            AutoconfigReplacer.baseDirectory = project.getBasedir();
+            AutoconfigReplacer.parentBaseDirectory = project.getParent().getBasedir();
 //            AutoconfigReplacer.autoconfigTempDirectory = new File(buildDirectory + File.separator + "hsf_jetty_temp/antx_autoconfig");
             AutoconfigReplacer.autoconfigTempDirectory = autoconfigTempDirectory;
                     mkdirs(autoconfigTempDirectory);
@@ -142,8 +144,11 @@ public class AutoconfigReplacer implements PlaceholderReplacer {
 //            logger.info("output size:" + outputs.length);
         }
 
-        if (getAntxPropertiesFile().exists())
-            antxRuntime.setUserPropertiesFile(getAntxPropertiesFile().getAbsolutePath(), null);
+        File antxProperties = getAntxPropertiesFile();
+        if (antxProperties.exists()){
+            logger.info("antx.properties:" + antxProperties.getAbsolutePath());
+            antxRuntime.setUserPropertiesFile(antxProperties.getAbsolutePath(), null);
+        }
 
 //        antxRuntime.setInteractiveMode();
 
@@ -214,7 +219,10 @@ public class AutoconfigReplacer implements PlaceholderReplacer {
     public File getAntxPropertiesFile() {
 //        @Parameter(defaultValue = "${basedir}/antx.properties", required = false)
         File properties = new File(baseDirectory, "antx.properties");
-        return properties;
+        if (properties.exists())
+            return properties;
+        properties = new File(parentBaseDirectory, "antx.properties");
+            return properties;
     }
 
     private List<File> getRuntimeJars() {

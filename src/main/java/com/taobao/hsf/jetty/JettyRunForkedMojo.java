@@ -19,8 +19,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,11 +26,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import com.taobao.hsf.jetty.component.ConsoleStreamer;
+import com.taobao.hsf.jetty.component.ShutdownMonitor;
 import com.taobao.hsf.jetty.component.Starter;
-import com.taobao.ticket.hsfjetty.Counter;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -40,7 +37,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jetty.util.IO;
 
 
 /**
@@ -165,18 +161,6 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
     private Random random;
 
 
-    public class ShutdownThread extends Thread {
-        public ShutdownThread() {
-            super("RunForkedShutdown");
-        }
-
-        public void run() {
-            if (forkedProcess != null && waitForChild) {
-                forkedProcess.destroy();
-            }
-        }
-    }
-
     @Override
     public void checkPomConfiguration() throws MojoExecutionException {
 
@@ -207,7 +191,6 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
             return;
         }
         PluginLog.setLog(getLog());
-        Runtime.getRuntime().addShutdownHook(new ShutdownThread());
         random = new Random();
         startJettyRunner();
     }
@@ -489,6 +472,7 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
             PluginLog.getLog().info("Forked process starting");
 
             if (waitForChild) {
+                Runtime.getRuntime().addShutdownHook(new ShutdownMonitor(stopKey,forkedProcess));
                 startPump("", forkedProcess.getInputStream());
 //                startPump("STDERR",forkedProcess.getErrorStream());
                 int exitcode = forkedProcess.waitFor();
@@ -784,56 +768,4 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
     }
 
 
-    /**
-     * Simple streamer for the console output from a Process
-     */
-    private static class ConsoleStreamer implements Runnable {
-        private String mode;
-        private BufferedReader reader;
-
-        public ConsoleStreamer(String mode, InputStream is) {
-            this.mode = mode;
-            this.reader = new BufferedReader(new InputStreamReader(is));
-        }
-
-
-
-        public void run() {
-            boolean print1st = true;
-            Counter counter = new Counter();
-            int count = 0;
-            try{
-                count = counter.getCountAndInc();
-            }catch (Exception e){
-                                /* ignore */
-            }
-            String line;
-            try {
-                while ((line = reader.readLine()) != (null)) {
-                    if(print1st){
-                        if(count > 0){
-                            if(line.startsWith("------")){
-                                print1st = false;
-                                System.out.println("hsfjetty-maven-plugin has been used " + count + " times");
-                            }
-                        }
-                    }
-                    System.out.println(mode + line);
-                }
-            } catch (IOException ignore) {
-                /* ignore */
-            } finally {
-                IO.close(reader);
-            }
-        }
-//        public static void main(String[] args){
-//            ConsoleStreamer console = new ConsoleStreamer("",System.in);
-//            try {
-//                int count = console.useCounter();
-//                System.out.println(count);
-//            } catch (Exception e) {
-//                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-//            }
-//        }
-    }
 }
