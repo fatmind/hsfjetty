@@ -237,7 +237,7 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
 
             Properties props = new Properties();
 
-            File webXML = getAutoconfigReplacer().getWebXml("/WEB-INF/web.xml");
+            File webXML = getAntxReplacer().getWebXml("/WEB-INF/web.xml");
             //web.xml
             if (webXML != null && webXML.exists() && !webXML.isDirectory()) {
                 props.put("web.xml", webXML.getAbsolutePath());
@@ -326,7 +326,7 @@ public class JettyRunForkedMojo extends AbstractJettyMojo {
 
 
             //autoconfig output
-            Set<String> output = getAutoconfigReplacer().getAutoconfigIncludeFile();
+            Set<String> output = getAntxReplacer().getAutoconfigIncludeFile();
             strbuff.setLength(0);
             for (String relativePath : output) {
                 strbuff.append(relativePath).append(",");

@@ -15,7 +15,7 @@
 
 package com.taobao.hsf.jetty;
 
-import com.taobao.hsf.jetty.component.AutoconfigReplacer;
+import com.taobao.hsf.jetty.component.AntxReplacer;
 import com.taobao.hsf.jetty.component.PlaceholderReplacer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -157,7 +157,7 @@ public class JettyAutoconfigMojo extends AbstractMojo {
      * run antx-autoconfig to replace the placeholder
      */
     public void autoconfigReplace() {
-        PlaceholderReplacer replacer = new AutoconfigReplacer(getProject(),getWebAppSourceDirectory(),getAutoconfigFile(),getAutoconfigTempDirectory(),getLog());
+        PlaceholderReplacer replacer = new AntxReplacer(true,getProject(),getWebAppSourceDirectory(),getAutoconfigFile(),getAutoconfigTempDirectory(),getLog());
         replacer.replace();
     }
 

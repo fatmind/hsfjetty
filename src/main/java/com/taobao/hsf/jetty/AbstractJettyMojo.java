@@ -26,9 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import com.taobao.hsf.jetty.component.AutoconfigReplacer;
-import com.taobao.hsf.jetty.component.PlaceholderReplacer;
-import org.apache.maven.model.Plugin;
+import com.taobao.hsf.jetty.component.AntxReplacer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -43,9 +41,7 @@ import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.Scanner;
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
 import javax.management.MBeanServer;
@@ -278,6 +274,12 @@ public abstract class AbstractJettyMojo extends AbstractMojo
      */
     protected Thread consoleScanner;
 
+    /**
+     * whether use the antx-autoconfig to filter the placeholders
+     */
+    @Parameter(defaultValue = "true",alias = "enableAntx")
+    protected boolean useAntx;
+
     
     public static final String PORT_SYSPROPERTY = "jetty.port";
     
@@ -445,7 +447,7 @@ public abstract class AbstractJettyMojo extends AbstractMojo
         checkPomConfiguration();
         getLog().info("sucessfully checkPomConfiguration, begin startJetty()......!!!!!!");
         Resource webAppSourceDirectoryResource = Resource.newResource(webAppSourceDirectory.getCanonicalPath());
-        replacer = new AutoconfigReplacer(project,webAppSourceDirectoryResource.getFile()
+        replacer = new AntxReplacer(useAntx,project,webAppSourceDirectoryResource.getFile()
                 ,autoconfigFile,getAutoconfigTempDirectory(),getLog());
 //        replacer.replace();
         startJetty();
@@ -499,7 +501,7 @@ public abstract class AbstractJettyMojo extends AbstractMojo
             this.server.addConnector(ajp);*/
 
 
-//            PlaceholderReplacer replacer = new AutoconfigReplacer(project,webap,)
+//            PlaceholderReplacer replacer = new AntxReplacer(project,webap,)
             //set up a RequestLog if one is provided
             if (this.requestLog != null)
                 getServer().setRequestLog(this.requestLog);
@@ -738,7 +740,7 @@ public abstract class AbstractJettyMojo extends AbstractMojo
     }
 
 
-    private AutoconfigReplacer replacer;
+    private AntxReplacer replacer;
     /**
      * The default location of the web.xml file. Will be used
      * if &lt;webAppConfig&gt;&lt;descriptor&gt; is not set.
@@ -837,9 +839,9 @@ public abstract class AbstractJettyMojo extends AbstractMojo
         return target;
     }
 
-    public AutoconfigReplacer getAutoconfigReplacer() {
+    public AntxReplacer getAntxReplacer() {
         if (replacer == null){
-            replacer = new AutoconfigReplacer(project,webAppSourceDirectory,autoconfigFile,getAutoconfigTempDirectory(),getLog());
+            replacer = new AntxReplacer(useAntx,project,webAppSourceDirectory,autoconfigFile,getAutoconfigTempDirectory(),getLog());
         }
         return replacer;
     }

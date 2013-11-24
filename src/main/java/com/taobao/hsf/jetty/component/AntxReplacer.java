@@ -4,9 +4,7 @@ import com.alibaba.antx.config.ConfigRuntimeImpl;
 import com.alibaba.antx.config.descriptor.ConfigGenerate;
 import com.alibaba.antx.config.entry.ConfigEntry;
 import com.alibaba.antx.config.generator.ConfigGenerator;
-import com.alibaba.antx.util.CharsetUtil;
 import com.alibaba.citrus.logconfig.LogConfigurator;
-import com.taobao.hsf.jetty.PluginLog;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -21,7 +19,7 @@ import java.util.*;
  * @auther: zheshan
  * Time: 13-6-6 上午9:53
  */
-public class AutoconfigReplacer implements PlaceholderReplacer {
+public class AntxReplacer implements PlaceholderReplacer {
     private static MavenProject project;
     private static boolean replaced = false;
     private static File autoconfigFile;
@@ -49,34 +47,34 @@ public class AutoconfigReplacer implements PlaceholderReplacer {
         return includeFiles;
     }
 
-    public AutoconfigReplacer(MavenProject project, File webAppSourceDirectory, File autoconfigFile,File autoconfigTempDirectory, Log logger) {
-        if (!replaced) {
-            AutoconfigReplacer.project = project;
-            AutoconfigReplacer.webAppSourceDirectory = webAppSourceDirectory;
+    public AntxReplacer(boolean useAntx,MavenProject project, File webAppSourceDirectory, File autoconfigFile, File autoconfigTempDirectory, Log logger) {
+        if (!replaced&&useAntx) {
+            AntxReplacer.project = project;
+            AntxReplacer.webAppSourceDirectory = webAppSourceDirectory;
             mkdirs(webAppSourceDirectory);
-            AutoconfigReplacer.autoconfigFile = autoconfigFile;
-            AutoconfigReplacer.logger = logger;
-            AutoconfigReplacer.buildDirectory = new File(project.getBuild().getOutputDirectory());
+            AntxReplacer.autoconfigFile = autoconfigFile;
+            AntxReplacer.logger = logger;
+            AntxReplacer.buildDirectory = new File(project.getBuild().getOutputDirectory());
             mkdirs(buildDirectory);
-            AutoconfigReplacer.baseDirectory = project.getBasedir();
-            AutoconfigReplacer.parentBaseDirectory = project.getParent().getBasedir();
-//            AutoconfigReplacer.autoconfigTempDirectory = new File(buildDirectory + File.separator + "hsf_jetty_temp/antx_autoconfig");
-            AutoconfigReplacer.autoconfigTempDirectory = autoconfigTempDirectory;
+            AntxReplacer.baseDirectory = project.getBasedir();
+            AntxReplacer.parentBaseDirectory = project.getParent().getBasedir();
+//            AntxReplacer.autoconfigTempDirectory = new File(buildDirectory + File.separator + "hsf_jetty_temp/antx_autoconfig");
+            AntxReplacer.autoconfigTempDirectory = autoconfigTempDirectory;
                     mkdirs(autoconfigTempDirectory);
             replace();
         }
     }
 
-    /*    public AutoconfigReplacer(String baseDirectoryPath,String buildDirectoryPath,File webAppSourceDirectory, File autoconfigFile, Log logger) {
+    /*    public AntxReplacer(String baseDirectoryPath,String buildDirectoryPath,File webAppSourceDirectory, File autoconfigFile, Log logger) {
             if (!replaced) {
-                AutoconfigReplacer.webAppSourceDirectory = webAppSourceDirectory;
+                AntxReplacer.webAppSourceDirectory = webAppSourceDirectory;
                 mkdirs(webAppSourceDirectory);
-                AutoconfigReplacer.autoconfigFile = autoconfigFile;
-                AutoconfigReplacer.logger = logger;
-                AutoconfigReplacer.buildDirectory = new File(buildDirectoryPath);
+                AntxReplacer.autoconfigFile = autoconfigFile;
+                AntxReplacer.logger = logger;
+                AntxReplacer.buildDirectory = new File(buildDirectoryPath);
                 mkdirs(buildDirectory);
-                AutoconfigReplacer.baseDirectory = new File(baseDirectoryPath);
-                AutoconfigReplacer.autoconfigTempDirectory = new File (buildDirectory+File.separator+"hsf_jetty_temp/antx_autoconfig");
+                AntxReplacer.baseDirectory = new File(baseDirectoryPath);
+                AntxReplacer.autoconfigTempDirectory = new File (buildDirectory+File.separator+"hsf_jetty_temp/antx_autoconfig");
                 mkdirs(autoconfigTempDirectory);
                 replace();
             }

@@ -12,50 +12,83 @@ import java.util.List;
 /**
  * Display help information on hsfjetty-maven-plugin.<br/>
  * Call
- * 
+ * <p/>
  * <pre>
  * mvn hsfjetty:help -Ddetail=true -Dgoal=&lt;goal-name&gt;
  * </pre>
- * 
+ * <p/>
  * to display parameter details.
- * 
  */
 
 //@plexus.component role="org.apache.maven.shared.filtering.MavenResourcesFiltering"
 //                           role-hint="default"
 //@Component(role = com.taobao.hsf.jetty.HelpMojo.class,hint = "help")
-@Mojo(name="help",requiresProject=false)
+@Mojo(name = "help", requiresProject = false)
 public class HelpMojo extends AbstractMojo {
     /**
      * If <code>true</code>, display all settable properties for each goal.
-     * 
      */
-    @Parameter(defaultValue="false",alias="detail")
+    @Parameter(defaultValue = "false", alias = "detail")
     private boolean detail;
 
     /**
      * The name of the goal for which to show help. If unspecified, all goals will be displayed.
-     * 
      */
-    @Parameter(alias="goal")
+    @Parameter(alias = "goal")
     private java.lang.String goal;
 
     /**
      * The maximum length of a display line, should be positive.
-     * 
      */
-    @Parameter(alias="lineLength",defaultValue="80")
+    @Parameter(alias = "lineLength", defaultValue = "80")
     private int lineLength;
 
     /**
      * The number of spaces per indentation level, should be positive.
-     * 
      */
-    @Parameter(alias="indentSize",defaultValue="2")
+    @Parameter(alias = "indentSize", defaultValue = "2")
     private int indentSize;
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public void execute() throws MojoExecutionException {
+        StringBuffer sb = new StringBuffer();
+
+        append(sb, "com.taobao.hsf.thirdcontainer.jetty:hsfjetty-maven-plugin:0.0.1-SNAPSHOT", 0);
+        append(sb, "", 0);
+
+        append(sb, "HSFJetty :: HSF 1.x Jetty Maven Plugin", 0);
+        append(sb, "", 0);
+
+        if (goal == null || goal.length() <= 0) {
+            append(sb, "This plugin has 2 goals:", 0);
+            append(sb, "", 0);
+        }
+
+        append(sb, "hsfjetty:run", 0);
+        append(sb,
+                "This goal is used in-situ on a Maven project without first requiring that the project is assembled into a war, saving time during the development cycle. The plugin forks a parallel lifecycle to ensure that the \'compile\' phase has been completed before invoking Jetty. This means that you do not need to explicity execute a \'mvn compile\' first. It also means that a \'mvn clean jetty:run\' will ensure that a full fresh compile is done before invoking Jetty.\n\nOnce invoked, the plugin can be configured to run continuously, scanning for changes in the project and automatically performing a hot redeploy when necessary. This allows the developer to concentrate on coding changes to the project using their IDE of choice and have those changes immediately and transparently reflected in the running web container, eliminating development time that is wasted on rebuilding, reassembling and redeploying.\n\nYou may also specify the location of a jetty.xml file whose contents will be applied before any plugin configuration. This can be used, for example, to deploy a static webapp that is not part of your maven build.\n\nThere is a reference guide to the configuration parameters for this plugin, and more detailed information with examples in the Configuration Guide.\n",
+                1);
+        append(sb, "", 2);
+        append(sb, "1. configure the HSF_HOME in the environment", 2);
+        append(sb, "eg: export HSF_HOME=/home/admin/hsf/taobao-hsf.sar", 3);
+        append(sb, "", 2);
+        append(sb, "2. maven plugin configuration:", 2);
+        append(sb, "<configuration>", 3);
+        append(sb, "<contextPath>/</contextPath><!--the web project context path-->", 4);
+        append(sb, "<webPort>8081</webPort><!--http listening port-->", 4);
+        append(sb, "<useAntx>false</useAntx><!--default is true-->", 4);
+        append(sb, "</configuration>", 3);
+        append(sb, "", 0);
+        append(sb, "hsfjetty:help", 0);
+        append(sb, "ctrl+c to stop the plugin", 1);
+        if (getLog().isInfoEnabled()) {
+            getLog().info(sb.toString());
+        }
+    }
+
+    public void execute_bak() throws MojoExecutionException {
         if (lineLength <= 0) {
             getLog().warn("The parameter 'lineLength' should be positive, using '80' as default.");
             lineLength = 80;
@@ -547,12 +580,12 @@ public class HelpMojo extends AbstractMojo {
      * <p>
      * Repeat a String <code>n</code> times to form a new string.
      * </p>
-     * 
-     * @param str String to repeat
+     *
+     * @param str    String to repeat
      * @param repeat number of times to repeat str
      * @return String with repeated String
      * @throws NegativeArraySizeException if <code>repeat < 0</code>
-     * @throws NullPointerException if str is <code>null</code>
+     * @throws NullPointerException       if str is <code>null</code>
      */
     private static String repeat(String str, int repeat) {
         StringBuffer buffer = new StringBuffer(repeat * str.length());
@@ -567,22 +600,22 @@ public class HelpMojo extends AbstractMojo {
     /**
      * Append a description to the buffer by respecting the indentSize and lineLength parameters. <b>Note</b>: The last
      * character is always a new line.
-     * 
-     * @param sb The buffer to append the description, not <code>null</code>.
+     *
+     * @param sb          The buffer to append the description, not <code>null</code>.
      * @param description The description, not <code>null</code>.
-     * @param indent The base indentation level of each line, must not be negative.
+     * @param indent      The base indentation level of each line, must not be negative.
      */
     private void append(StringBuffer sb, String description, int indent) {
-        for (Iterator it = toLines(description, indent, indentSize, lineLength).iterator(); it.hasNext();) {
+        for (Iterator it = toLines(description, indent, indentSize, lineLength).iterator(); it.hasNext(); ) {
             sb.append(it.next().toString()).append('\n');
         }
     }
 
     /**
      * Splits the specified text into lines of convenient display length.
-     * 
-     * @param text The text to split into lines, must not be <code>null</code>.
-     * @param indent The base indentation level of each line, must not be negative.
+     *
+     * @param text       The text to split into lines, must not be <code>null</code>.
+     * @param indent     The base indentation level of each line, must not be negative.
      * @param indentSize The size of each indentation, must not be negative.
      * @param lineLength The length of the line, must not be negative.
      * @return The sequence of display lines, never <code>null</code>.
@@ -602,9 +635,9 @@ public class HelpMojo extends AbstractMojo {
 
     /**
      * Adds the specified line to the output sequence, performing line wrapping if necessary.
-     * 
-     * @param lines The sequence of display lines, must not be <code>null</code>.
-     * @param line The line to add, must not be <code>null</code>.
+     *
+     * @param lines      The sequence of display lines, must not be <code>null</code>.
+     * @param line       The line to add, must not be <code>null</code>.
      * @param indentSize The size of each indentation, must not be negative.
      * @param lineLength The length of the line, must not be negative.
      */
@@ -639,7 +672,7 @@ public class HelpMojo extends AbstractMojo {
 
     /**
      * Gets the indentation level of the specified line.
-     * 
+     *
      * @param line The line whose indentation level should be retrieved, must not be <code>null</code>.
      * @return The indentation level of the line.
      */

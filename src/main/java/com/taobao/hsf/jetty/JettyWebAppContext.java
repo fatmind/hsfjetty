@@ -15,7 +15,7 @@
 
 package com.taobao.hsf.jetty;
 
-import com.taobao.hsf.jetty.component.AutoconfigReplacer;
+import com.taobao.hsf.jetty.component.AntxReplacer;
 import org.eclipse.jetty.annotations.AnnotationConfiguration;
 import org.eclipse.jetty.plus.webapp.EnvConfiguration;
 import org.eclipse.jetty.plus.webapp.PlusConfiguration;
@@ -44,7 +44,7 @@ public class JettyWebAppContext extends WebAppContext
 {
     private static final String WEB_INF_CLASSES_PREFIX = "/WEB-INF/classes";
     private static final String WEB_INF_LIB_PREFIX = "/WEB-INF/lib";
-//    private final AutoconfigReplacer replacer;
+//    private final AntxReplacer replacer;
     private final Set<String> autoconfigOutput;
     private final File autoconfigTempDirectory;
     private File defaultWebAppSourceDirectory;
@@ -77,7 +77,7 @@ public class JettyWebAppContext extends WebAppContext
         this.setParentLoaderPriority(true);
     }
 
-    public JettyWebAppContext(AutoconfigReplacer replacer) {
+    public JettyWebAppContext(AntxReplacer replacer) {
         super();
         configs = new Configuration[]{webInfConfig, webXmlConfig,  metaInfConfig,  fragConfig, envConfig, plusConfig, annotationConfig, jettyWebConfig, tagConfig };
         this.autoconfigOutput = replacer.getAutoconfigIncludeFile();
